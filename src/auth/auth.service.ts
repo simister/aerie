@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthDto } from './dto/auth.dto';
 import * as bcrypt from 'bcrypt';
+import { jwtConstants } from './utils/constants';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +35,12 @@ export class AuthService {
       throw new BadRequestException('Incorrect password.');
     }
 
-    // sign JWT and return user.
+    const token = await this.signToken({
+      id: foundUser.id,
+      email: foundUser.email,
+    });
+
+    return { token };
   }
 
   async logOut() {
@@ -69,5 +75,11 @@ export class AuthService {
 
   async comparePasswords(args: { password: string; hash: string }) {
     return await bcrypt.compare(args.password, args.hash);
+  }
+
+  async signToken(args: { id: number; email: string }) {
+    const payload = args;
+
+    return this.jwtService.signAsync(payload, { secret: jwtConstants.secret });
   }
 }
