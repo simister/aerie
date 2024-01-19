@@ -17,16 +17,24 @@ export class AuthService {
     private prisma: PrismaService,
   ) {}
 
-  async signIn(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(username);
+  async signIn(dto: AuthDto) {
+    const { email, password } = dto;
+    const foundUser = await this.prisma.user.findUnique({ where: { email } });
 
-    if (user?.password !== pass) {
-      throw new UnauthorizedException();
+    if (!foundUser) {
+      throw new BadRequestException('Email not found.');
     }
-    const { password, ...result } = user;
-    // TODO: Generate a JWT and return it here instead of the user object
-    return result;
-    };
+
+    const isMatch = await this.comparePasswords({
+      password,
+      hash: foundUser.hashedPassword,
+    });
+
+    if (!isMatch) {
+      throw new BadRequestException('Incorrect password.');
+    }
+
+    // sign JWT and return user.
   }
 
   async logOut() {
@@ -56,8 +64,10 @@ export class AuthService {
 
   async hashPassword(password: string) {
     const saltOrRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltOrRounds);
+    return await bcrypt.hash(password, saltOrRounds);
+  }
 
-    return hashedPassword;
+  async comparePasswords(args: { password: string; hash: string }) {
+    return await bcrypt.compare(args.password, args.hash);
   }
 }
