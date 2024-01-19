@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   HttpCode,
   HttpStatus,
@@ -19,9 +20,9 @@ export class AuthController {
     return this.authService.signIn(signInDto, res);
   }
 
-  @Post('logout')
-  logOut() {
-    return this.authService.logOut();
+  @Get('logout')
+  signOut(@Res() res) {
+    return this.authService.signOut(res);
   }
 
   @Post('signup')

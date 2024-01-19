@@ -50,8 +50,9 @@ export class AuthService {
     return res.send({ message: 'Login successful.' });
   }
 
-  async logOut() {
-    return { message: 'Logged out.' };
+  async signOut(res: Response) {
+    res.clearCookie('token');
+    return res.send({ message: 'Logout successful.' });
   }
 
   async signUp(dto: AuthDto) {
